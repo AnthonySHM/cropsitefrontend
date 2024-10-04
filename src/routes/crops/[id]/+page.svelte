@@ -7,7 +7,6 @@
   let crop: any = null;
   let error: string | null = null;
   let activeTab = 'overview';
-  let searchQuery = '';
   let carousels: { [key: string]: any } = {};
   let bootstrapLoaded = false;
   let bootstrap: any;
@@ -16,6 +15,14 @@
     const cropId = $page.params.id;
     try {
       crop = await api.get(`/crops/${cropId}`);
+      console.log('Fetched crop data:', crop);
+      console.log('Videos:', {
+        overviewVideos: crop.overviewVideos,
+        plantingVideos: crop.plantingVideos,
+        careVideos: crop.careVideos,
+        harvestVideos: crop.harvestVideos,
+        economicsVideos: crop.economicsVideos
+      });
       if (browser) {
         bootstrap = await import('bootstrap');
         bootstrapLoaded = true;
@@ -59,20 +66,14 @@
     description?: string;
   }
 
-  function filterVideos(videos: Video[] | undefined) {
-    if (!videos) return [];
-    return videos.filter(video => 
-      video.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }
-
-  function getYoutubeId(url: string): string | null {
+  function getYoutubeId(url: string | undefined): string | null {
+    if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   }
 
-  $: youtubeId = crop && activeTab && crop[activeTab + 'Videos'] ? getYoutubeId(crop[activeTab + 'Videos'][0]?.url) : null;
+  $: youtubeId = crop && activeTab && crop[activeTab + 'Videos'] && crop[activeTab + 'Videos'][0] ? getYoutubeId(crop[activeTab + 'Videos'][0].url) : null;
 </script>
 
 {#if crop && bootstrapLoaded}
@@ -134,29 +135,25 @@
           </div>
         </div>
         <div class="col-md-4">
-          <div class="mb-3">
-            <input type="text" class="form-control" placeholder="Search videos" bind:value={searchQuery}>
-          </div>
-          <div class="video-scroll" style="height: 500px; overflow-y: auto;">
-            {#each filterVideos(crop[activeTab + 'Videos']) as video}
-              <div class="card mb-3">
-                <div class="card-body">
-                  <h5 class="card-title">{video.title}</h5>
-                  {#if video.description}
-                    <p class="card-text">{video.description}</p>
-                  {/if}
-                  {#if youtubeId}
-                    <iframe
-                      class="w-100"
-                      src={`https://www.youtube.com/embed/${youtubeId}`}
-                      title="YouTube video player"
-                    ></iframe>
-                  {:else}
-                    <p>Invalid YouTube URL</p>
-                  {/if}
-                </div>
+          <div class="mt-4">
+            <h3>Video</h3>
+            {#if crop[activeTab + 'Videos'] && crop[activeTab + 'Videos'].length > 0 && youtubeId}
+              <div class="ratio ratio-16x9">
+                <iframe
+                  src="https://www.youtube.com/embed/{youtubeId}"
+                  title="YouTube video player"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                ></iframe>
               </div>
-            {/each}
+              <h4>{crop[activeTab + 'Videos'][0].title}</h4>
+              {#if crop[activeTab + 'Videos'][0].description}
+                <p>{crop[activeTab + 'Videos'][0].description}</p>
+              {/if}
+            {:else}
+              <p>No videos available for this section.</p>
+            {/if}
           </div>
         </div>
       </div>
