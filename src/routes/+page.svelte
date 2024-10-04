@@ -16,6 +16,11 @@
   let minRating = '0';
   let searchSuggestions: string[] = [];
 
+  // Add this function to sort crops
+  function getSortedCrops(crops: Crop[]): Crop[] {
+    return [...crops].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   async function fetchCrops(search: string = '', rating: string = '0') {
     try {
       const crops = await api.get(`/crops?search=${search}&minRating=${rating}`);
@@ -88,7 +93,7 @@
     <section class="mb-5">
       <h2 class="h3 mb-3">Featured Crops</h2>
       <div class="row row-cols-1 row-cols-md-3 g-4">
-        {#each featuredCrops as crop}
+        {#each getSortedCrops(featuredCrops) as crop}
           <div class="col">
             <div class="card h-100 shadow-sm">
               <img src={crop.image} class="card-img-top" alt={crop.name} style="height: 200px; object-fit: cover;" />
