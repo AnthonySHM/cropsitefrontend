@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { api } from '$lib/api';
+  import Comment from '$lib/Comment.svelte';
 
   let crop: any = null;
   let error: string | null = null;
@@ -157,6 +158,7 @@
           </div>
         </div>
       </div>
+      <Comment cropId={crop._id} tab={activeTab} />
     {:else}
       <div class="alert alert-info">Loading crop details...</div>
     {/if}

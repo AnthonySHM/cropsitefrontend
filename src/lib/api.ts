@@ -21,7 +21,8 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'API request failed');
+    console.error('API Error:', errorData);
+    throw new Error(errorData.message || `API request failed: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
@@ -32,6 +33,11 @@ export const api = {
   post: (endpoint: string, data: any) => fetchWithAuth(endpoint, {
     method: 'POST',
     body: JSON.stringify(data),
+  }),
+  getComments: (cropId: string, tab: string) => fetchWithAuth(`/comments/${cropId}/${tab}`),
+  addComment: (cropId: string, tab: string, content: string) => fetchWithAuth('/comments', {
+    method: 'POST',
+    body: JSON.stringify({ cropId, tab, content }),
   }),
   // Add other methods (PUT, DELETE, etc.) as needed
 };
