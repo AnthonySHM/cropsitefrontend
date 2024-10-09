@@ -24,13 +24,15 @@
 {#if bootstrapLoaded}
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-      <HomeButton />
+      <div class="d-flex align-items-center">
+        <HomeButton />
+        {#if $auth.user && ($auth.user as any).isAdmin}
+          <a class="btn btn-outline-primary ms-2" href="/admin">Admin Panel</a>
+        {/if}
+      </div>
       <div class="navbar-nav ms-auto">
         {#if $auth.user}
           <span class="nav-item nav-link">Welcome, {($auth.user as any).username}</span>
-          {#if ($auth.user as any).isAdmin}
-            <a class="nav-item nav-link" href="/admin">Admin</a>
-          {/if}
           <button class="btn btn-outline-primary" on:click={handleLogout}>Logout</button>
         {:else}
           <a class="nav-item nav-link" href="/login">Login</a>

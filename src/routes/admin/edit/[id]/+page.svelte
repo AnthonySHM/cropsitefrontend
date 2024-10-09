@@ -46,8 +46,12 @@
   function addMedia(event: CustomEvent) {
     const { type, data } = event.detail;
     if (type === 'video') {
+      if (!crop.videos) crop.videos = {};
+      if (!crop.videos[currentSection]) crop.videos[currentSection] = [];
       crop.videos[currentSection].push(data);
-    } else {
+    } else if (type === 'image') {
+      if (!crop.images) crop.images = {};
+      if (!crop.images[currentSection]) crop.images[currentSection] = [];
       crop.images[currentSection].push(data);
     }
   }
@@ -67,7 +71,9 @@
   }
 
   function deleteCarouselImage(section: string, index: number) {
-    crop.images[section].splice(index, 1);
+    if (crop.images && crop.images[section]) {
+      crop.images[section].splice(index, 1);
+    }
   }
 </script>
 
@@ -102,33 +108,38 @@
           {#each sections as section}
             <div class="mb-4">
               <h4>{section.charAt(0).toUpperCase() + section.slice(1)} Media</h4>
-              <div class="mb-2">
+              <div class="mb-3">
                 <h5>Videos</h5>
-                {#each crop.videos[section] as video, index}
-                  <div class="card mb-2">
-                    <div class="card-body">
-                      <h6>{video.title}</h6>
-                      <p>{video.description}</p>
-                      <a href={video.url} target="_blank" rel="noopener noreferrer">{video.url}</a>
-                      <button type="button" class="btn btn-danger btn-sm mt-2" on:click={() => deleteMedia(section, 'video', index)}>Delete</button>
+                {#if crop.videos && crop.videos[section]}
+                  {#each crop.videos[section] as video, index}
+                    <div class="card mb-2">
+                      <div class="card-body">
+                        <h6>{video.title}</h6>
+                        <p>{video.description}</p>
+                        <a href={video.url} target="_blank" rel="noopener noreferrer">{video.url}</a>
+                        <button type="button" class="btn btn-danger btn-sm mt-2" on:click={() => deleteMedia(section, 'video', index)}>Delete</button>
+                      </div>
                     </div>
-                  </div>
-                {/each}
+                  {/each}
+                {/if}
+                <button type="button" class="btn btn-secondary btn-sm" on:click={() => { currentSection = section; showVideoPopup = true; }}>Add Video</button>
               </div>
-              <div class="mb-2">
+              <div class="mb-3">
                 <h5>Carousel Images</h5>
-                {#each crop.images[section] as image, index}
-                  <div class="card mb-2">
-                    <div class="card-body">
-                      <input type="text" class="form-control mb-2" bind:value={image.url} placeholder="Image URL">
-                      <input type="text" class="form-control mb-2" bind:value={image.caption} placeholder="Image Caption">
-                      <button type="button" class="btn btn-danger btn-sm" on:click={() => deleteCarouselImage(section, index)}>Delete</button>
+                {#if crop.images && crop.images[section]}
+                  {#each crop.images[section] as image, index}
+                    <div class="card mb-2">
+                      <div class="card-body">
+                        <input type="text" class="form-control mb-2" bind:value={image.url} placeholder="Image URL">
+                        <input type="text" class="form-control mb-2" bind:value={image.caption} placeholder="Image Caption">
+                        <img src={image.url} alt={image.caption} class="img-thumbnail mb-2" style="max-height: 100px;">
+                        <button type="button" class="btn btn-danger btn-sm" on:click={() => deleteCarouselImage(section, index)}>Delete</button>
+                      </div>
                     </div>
-                  </div>
-                {/each}
-                <button type="button" class="btn btn-secondary btn-sm" on:click={() => addCarouselImage(section)}>Add Carousel Image</button>
+                  {/each}
+                {/if}
+                <button type="button" class="btn btn-secondary btn-sm" on:click={() => { currentSection = section; showImagePopup = true; }}>Add Carousel Image</button>
               </div>
-              <button type="button" class="btn btn-secondary me-2" on:click={() => { currentSection = section; showVideoPopup = true; }}>Add Video</button>
             </div>
           {/each}
         </div>
