@@ -55,8 +55,11 @@
   <div class="comment-list">
     {#each comments as comment}
       <div class="card mb-2">
+        <div class="card-header">
+          <strong>{comment.user.username}</strong>
+          <small class="text-muted float-end">{new Date(comment.createdAt).toLocaleString()}</small>
+        </div>
         <div class="card-body">
-          <h5 class="card-title">{comment.user.username}</h5>
           <p class="card-text">{comment.content}</p>
         </div>
       </div>

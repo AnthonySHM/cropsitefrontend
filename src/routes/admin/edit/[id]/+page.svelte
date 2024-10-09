@@ -54,6 +54,7 @@
       if (!crop.images[currentSection]) crop.images[currentSection] = [];
       crop.images[currentSection].push(data);
     }
+    crop = { ...crop }; // Force Svelte to update the view
   }
 
   function deleteMedia(section: string, type: 'video' | 'image', index: number) {
@@ -91,6 +92,10 @@
           <div class="mb-3">
             <label for="name" class="form-label">Name</label>
             <input type="text" class="form-control" id="name" bind:value={crop.name}>
+          </div>
+          <div class="mb-3">
+            <label for="rating" class="form-label">Rating</label>
+            <input type="number" class="form-control" id="rating" bind:value={crop.rating} min="0" max="5" step="0.1">
           </div>
           {#each sections as section}
             <div class="mb-3">

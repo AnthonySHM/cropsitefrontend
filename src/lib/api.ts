@@ -35,4 +35,11 @@ export const api = {
   post: (endpoint: string, data: unknown) => request(endpoint, { method: 'POST', body: JSON.stringify(data) }),
   put: (endpoint: string, data: unknown) => request(endpoint, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (endpoint: string) => request(endpoint, { method: 'DELETE' }),
+  async getComments() {
+    return request('/admin/comments');
+  },
+
+  async deleteComment(commentId: string) {
+    return request(`/admin/comments/${commentId}`, { method: 'DELETE' });
+  },
 };

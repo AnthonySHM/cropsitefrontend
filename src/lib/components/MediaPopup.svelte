@@ -67,6 +67,23 @@
                 <input type="text" class="form-control" id="caption" bind:value={caption} required>
               </div>
             {/if}
+            {#if type === 'image' && url}
+              <div class="mb-3">
+                <img src={url} alt="Preview" class="img-thumbnail" style="max-height: 200px;">
+              </div>
+            {:else if type === 'video' && url}
+              <div class="mb-3">
+                <iframe
+                  width="300"
+                  height="200"
+                  src={url.replace('watch?v=', 'embed/')}
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                  title="YouTube video preview"
+                ></iframe>
+              </div>
+            {/if}
             <button type="submit" class="btn btn-primary">Add {type}</button>
           </form>
         </div>

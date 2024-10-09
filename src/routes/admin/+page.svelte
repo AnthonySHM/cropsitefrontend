@@ -4,6 +4,8 @@
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
 
+  let activeTab = 'crops';
+
   let crops: any[] = [];
   let editingCrop: any = null;
   let error = '';
@@ -62,44 +64,84 @@
       error = 'Failed to create crop';
     }
   }
+
+  async function saveCrop(crop: any) {
+    try {
+      console.log('Saving crop data:', JSON.stringify(crop, null, 2));
+      const updatedCrop = await api.put(`/admin/crops/${crop._id}`, crop);
+      console.log('Updated crop data:', JSON.stringify(updatedCrop, null, 2));
+      alert('Crop updated successfully');
+      goto('/admin');
+    } catch (err) {
+      error = 'Failed to update crop';
+      console.error('Error updating crop:', err);
+    }
+  }
+
+  function setActiveTab(tab: string) {
+    activeTab = tab;
+    if (tab === 'comments') {
+      goto('/admin/comments');
+    }
+  }
 </script>
 
-<div class="container mt-5">
-  <h1>Admin - Manage Crops</h1>
-  {#if error}
-    <div class="alert alert-danger">{error}</div>
+<div class="container-fluid mt-5">
+  <h1>Admin Dashboard</h1>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <button class="nav-link" class:active={activeTab === 'crops'} on:click={() => setActiveTab('crops')}>
+        Manage Crops
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" class:active={activeTab === 'comments'} on:click={() => setActiveTab('comments')}>
+        Manage Comments
+      </button>
+    </li>
+  </ul>
+
+  {#if activeTab === 'crops'}
+    <div class="container mt-5">
+      {#if error}
+        <div class="alert alert-danger">{error}</div>
+      {/if}
+
+      <h2>Create New Crop</h2>
+      <a href="/admin/create" class="btn btn-success">Create New Crop</a>
+
+      <h2 class="mt-4">Existing Crops</h2>
+      <div class="mb-3">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Search crops..."
+          bind:value={searchQuery}
+        />
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Rating</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each filteredCrops as crop}
+            <tr>
+              <td>{crop.name}</td>
+              <td>{crop.rating || 'N/A'}</td>
+              <td>
+                <button class="btn btn-primary btn-sm me-2" on:click={() => editCrop(crop)}>Edit</button>
+                <button class="btn btn-danger btn-sm" on:click={() => deleteCrop(crop._id)}>Delete</button>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
   {/if}
-
-  <h2>Create New Crop</h2>
-  <a href="/admin/create" class="btn btn-success">Create New Crop</a>
-
-  <h2 class="mt-4">Existing Crops</h2>
-  <div class="mb-3">
-    <input
-      type="text"
-      class="form-control"
-      placeholder="Search crops..."
-      bind:value={searchQuery}
-    />
-  </div>
-
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each filteredCrops as crop}
-        <tr>
-          <td>{crop.name}</td>
-          <td>
-            <button class="btn btn-primary btn-sm me-2" on:click={() => editCrop(crop)}>Edit</button>
-            <button class="btn btn-danger btn-sm" on:click={() => deleteCrop(crop._id)}>Delete</button>
-          </td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
 </div>
