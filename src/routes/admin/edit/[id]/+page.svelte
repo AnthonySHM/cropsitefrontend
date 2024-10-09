@@ -198,15 +198,16 @@
   bind:show={showAdvancedEditing}
   tabName={currentEditingTab}
   bind:content={editingContent}
+  fullscreen={true}
   on:close={() => showAdvancedEditing = false}
   on:save={({ detail }) => {
     if (crop && currentEditingTab) {
       if (currentEditingTab === 'name') {
-        crop.name = detail.content;
+        crop.name = detail;
       } else {
-        crop[currentEditingTab.toLowerCase()] = sanitizeHTML(detail.content);
+        crop[currentEditingTab.toLowerCase()] = detail;
       }
+      showAdvancedEditing = false;
     }
-    showAdvancedEditing = false;
   }}
 />

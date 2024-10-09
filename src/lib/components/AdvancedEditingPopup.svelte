@@ -5,6 +5,7 @@
   export let show = false;
   export let content: string = '';
   export let tabName = '';
+  export let fullscreen = true;
 
   const dispatch = createEventDispatcher();
 
@@ -31,14 +32,14 @@
 </script>
 
 {#if show}
-  <div class="modal" style="display: block;">
-    <div class="modal-dialog modal-lg">
+  <div class="modal" class:modal-fullscreen={fullscreen} tabindex="-1" role="dialog" style="display: block;">
+    <div class="modal-dialog modal-dialog-scrollable" class:modal-fullscreen={fullscreen} role="document">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Advanced Editing: {tabName}</h5>
           <button type="button" class="btn-close" aria-label="Close" on:click={handleClose}></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="height: 80vh;">
           <Editor 
             apiKey="4gkcijhy16rngti25nfeoha3keat82wri7v5svlsdcysnrdj"
             bind:value={content}

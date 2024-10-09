@@ -170,6 +170,7 @@
   bind:show={showAdvancedEditing}
   tabName={currentEditingTab}
   bind:content={editingContent}
+  fullscreen={true}
   on:close={() => showAdvancedEditing = false}
   on:save={({ detail }) => {
     if (currentEditingTab === 'name') {
