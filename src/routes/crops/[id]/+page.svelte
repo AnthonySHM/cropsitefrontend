@@ -64,7 +64,7 @@
 
 {#if crop && bootstrapLoaded}
   <div class="container mt-5 pt-4">
-    <h1 class="mb-4">{crop.name}</h1>
+    <h1 class="mb-4">{@html crop.name}</h1>
     <div class="row">
       <div class="col-md-8">
         <ul class="nav nav-tabs mb-3">
@@ -106,7 +106,7 @@
                   <span class="visually-hidden">Next</span>
                 </button>
               </div>
-              <p>{crop[tab]}</p>
+              <p>{@html crop[tab]}</p>
             </div>
           {/each}
         </div>

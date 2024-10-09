@@ -123,7 +123,7 @@
         <div class="card h-100">
           <img src={crop.image} class="card-img-top" alt={crop.name} style="height: 200px; object-fit: cover;">
           <div class="card-body">
-            <h5 class="card-title">{crop.name}</h5>
+            <h5 class="card-title">{@html crop.name}</h5>
             <p class="card-text">Rating: {crop.rating} / 5</p>
             <a href="/crops/{crop._id}" class="btn btn-primary">Learn More</a>
           </div>

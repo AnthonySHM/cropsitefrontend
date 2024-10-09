@@ -66,7 +66,7 @@
     <tbody>
       {#each comments as comment}
         <tr>
-          <td>{comment.cropName || 'Unknown Crop'}</td>
+          <td>{@html comment.cropName || 'Unknown Crop'}</td>
           <td>{comment.section || 'Unknown Section'}</td>
           <td>{comment.userName || 'Unknown User'}</td>
           <td>{comment.text}</td>

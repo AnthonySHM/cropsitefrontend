@@ -13,6 +13,8 @@
   let searchQuery = '';
   let filteredCrops: any[] = [];
 
+  let users: any[] = [];
+
   $: {
     if (searchQuery) {
       filteredCrops = crops.filter(crop => 
@@ -29,6 +31,7 @@
       return;
     }
     await loadCrops();
+    await loadUsers();
   });
 
   async function loadCrops() {
@@ -36,6 +39,14 @@
       crops = await api.get('/admin/crops');
     } catch (err) {
       error = 'Failed to load crops';
+    }
+  }
+
+  async function loadUsers() {
+    try {
+      users = await api.get('/admin/users');
+    } catch (err) {
+      error = 'Failed to load users';
     }
   }
 
@@ -84,6 +95,17 @@
       goto('/admin/comments');
     }
   }
+
+  async function deleteUser(userId: string) {
+    if (confirm('Are you sure you want to delete this user?')) {
+      try {
+        await api.delete(`/admin/users/${userId}`);
+        await loadUsers();
+      } catch (err) {
+        error = 'Failed to delete user';
+      }
+    }
+  }
 </script>
 
 <div class="container-fluid mt-5">
@@ -98,6 +120,11 @@
     <li class="nav-item">
       <button class="nav-link" class:active={activeTab === 'comments'} on:click={() => setActiveTab('comments')}>
         Manage Comments
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" class:active={activeTab === 'users'} on:click={() => setActiveTab('users')}>
+        Manage Users
       </button>
     </li>
   </ul>
@@ -132,11 +159,37 @@
         <tbody>
           {#each filteredCrops as crop}
             <tr>
-              <td>{crop.name}</td>
+              <td>{@html crop.name}</td>
               <td>{crop.rating || 'N/A'}</td>
               <td>
                 <button class="btn btn-primary btn-sm me-2" on:click={() => editCrop(crop)}>Edit</button>
                 <button class="btn btn-danger btn-sm" on:click={() => deleteCrop(crop._id)}>Delete</button>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  {/if}
+
+  {#if activeTab === 'users'}
+    <div class="container mt-5">
+      <h2>Manage Users</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each users as user}
+            <tr>
+              <td>{user.username}</td>
+              <td>{user.email}</td>
+              <td>
+                <button class="btn btn-danger btn-sm" on:click={() => deleteUser(user._id)}>Delete</button>
               </td>
             </tr>
           {/each}

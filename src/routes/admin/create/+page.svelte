@@ -2,19 +2,13 @@
   import { api } from '$lib/api';
   import { goto } from '$app/navigation';
   import MediaPopup from '$lib/components/MediaPopup.svelte';
+  import AdvancedEditingPopup from '$lib/components/AdvancedEditingPopup.svelte';
+  import DOMPurify from 'dompurify';
 
-  interface Video {
-    title: string;
-    description: string;
-    url: string;
-  }
+  type Section = 'overview' | 'planting' | 'care' | 'harvest' | 'economics';
+  type MediaItem = { url: string; title?: string; description?: string; caption?: string };
 
-  interface Image {
-    url: string;
-    caption: string;
-  }
-
-  interface Crop {
+  let crop: {
     name: string;
     image: string;
     overview: string;
@@ -22,11 +16,9 @@
     care: string;
     harvest: string;
     economics: string;
-    videos: { [key: string]: Video[] };
-    images: { [key: string]: Image[] };
-  }
-
-  let crop: Crop = {
+    videos: Record<Section, MediaItem[]>;
+    images: Record<Section, MediaItem[]>;
+  } = {
     name: '',
     image: '',
     overview: '',
@@ -39,10 +31,13 @@
   };
 
   let error = '';
-  let sections = ['overview', 'planting', 'care', 'harvest', 'economics'];
+  let sections: Section[] = ['overview', 'planting', 'care', 'harvest', 'economics'];
   let showVideoPopup = false;
   let showImagePopup = false;
-  let currentSection = '';
+  let currentSection: Section;
+  let showAdvancedEditing = false;
+  let currentEditingTab: string;
+  let editingContent = '';
 
   async function createCrop() {
     try {
@@ -54,29 +49,31 @@
     }
   }
 
-  function addMedia(event: CustomEvent) {
+  function addMedia(event: CustomEvent<{ type: 'video' | 'image'; data: MediaItem }>) {
     const { type, data } = event.detail;
     if (type === 'video') {
-      crop.videos[currentSection].push(data);
+      crop.videos[currentSection] = [...crop.videos[currentSection], data];
     } else {
-      crop.images[currentSection].push(data);
+      crop.images[currentSection] = [...crop.images[currentSection], data];
     }
   }
 
-  function deleteMedia(section: string, type: 'video', index: number) {
+  function deleteMedia(section: Section, type: 'video' | 'image', index: number) {
     if (type === 'video') {
-      crop.videos[section].splice(index, 1);
+      crop.videos[section] = crop.videos[section].filter((_, i) => i !== index);
+    } else {
+      crop.images[section] = crop.images[section].filter((_, i) => i !== index);
     }
   }
 
-  function addCarouselImage(section: string) {
-    if (!crop.images) crop.images = {};
-    if (!crop.images[section]) crop.images[section] = [];
-    crop.images[section].push({ url: '', caption: '' });
+  function openAdvancedEditing(section: string) {
+    currentEditingTab = section;
+    editingContent = section === 'name' ? crop.name : crop[section as Section];
+    showAdvancedEditing = true;
   }
 
-  function deleteCarouselImage(section: string, index: number) {
-    crop.images[section].splice(index, 1);
+  function sanitizeHTML(dirty: string) {
+    return DOMPurify.sanitize(dirty);
   }
 </script>
 
@@ -92,12 +89,32 @@
         <h2>Text Content</h2>
         <div class="mb-3">
           <label for="name" class="form-label">Name</label>
-          <input type="text" class="form-control" id="name" bind:value={crop.name} required>
+          <div class="input-group">
+            <div class="form-control" id="name">{@html crop.name}</div>
+            <button 
+              type="button" 
+              class="btn btn-secondary" 
+              on:click={() => openAdvancedEditing('name')}
+            >
+              Edit
+            </button>
+          </div>
         </div>
         {#each sections as section}
           <div class="mb-3">
             <label for={section} class="form-label">{section.charAt(0).toUpperCase() + section.slice(1)}</label>
-            <textarea class="form-control" id={section} rows="5" bind:value={crop[section as keyof Crop]} required></textarea>
+            <div class="input-group">
+              <div class="form-control" style="height: auto; min-height: 100px; overflow-y: auto;">
+                <div>{@html sanitizeHTML(crop[section])}</div>
+              </div>
+              <button 
+                type="button" 
+                class="btn btn-secondary" 
+                on:click={() => openAdvancedEditing(section)}
+              >
+                Edit
+              </button>
+            </div>
           </div>
         {/each}
       </div>
@@ -110,7 +127,7 @@
         {#each sections as section}
           <div class="mb-4">
             <h4>{section.charAt(0).toUpperCase() + section.slice(1)} Media</h4>
-            <div class="mb-2">
+            <div class="mb-3">
               <h5>Videos</h5>
               {#each crop.videos[section] as video, index}
                 <div class="card mb-2">
@@ -122,8 +139,9 @@
                   </div>
                 </div>
               {/each}
+              <button type="button" class="btn btn-secondary btn-sm" on:click={() => { currentSection = section; showVideoPopup = true; }}>Add Video</button>
             </div>
-            <div class="mb-2">
+            <div class="mb-3">
               <h5>Carousel Images</h5>
               {#each crop.images[section] as image, index}
                 <div class="card mb-2">
@@ -131,13 +149,12 @@
                     <input type="text" class="form-control mb-2" bind:value={image.url} placeholder="Image URL">
                     <input type="text" class="form-control mb-2" bind:value={image.caption} placeholder="Image Caption">
                     <img src={image.url} alt={image.caption} class="img-thumbnail mb-2" style="max-height: 100px;">
-                    <button type="button" class="btn btn-danger btn-sm" on:click={() => deleteCarouselImage(section, index)}>Delete</button>
+                    <button type="button" class="btn btn-danger btn-sm" on:click={() => deleteMedia(section, 'image', index)}>Delete</button>
                   </div>
                 </div>
               {/each}
-              <button type="button" class="btn btn-secondary btn-sm" on:click={() => addCarouselImage(section)}>Add Carousel Image</button>
+              <button type="button" class="btn btn-secondary btn-sm" on:click={() => { currentSection = section; showImagePopup = true; }}>Add Carousel Image</button>
             </div>
-            <button type="button" class="btn btn-secondary me-2" on:click={() => { currentSection = section; showVideoPopup = true; }}>Add Video</button>
           </div>
         {/each}
       </div>
@@ -148,3 +165,18 @@
 
 <MediaPopup type="video" bind:show={showVideoPopup} on:add={addMedia} />
 <MediaPopup type="image" bind:show={showImagePopup} on:add={addMedia} />
+
+<AdvancedEditingPopup
+  bind:show={showAdvancedEditing}
+  tabName={currentEditingTab}
+  bind:content={editingContent}
+  on:close={() => showAdvancedEditing = false}
+  on:save={({ detail }) => {
+    if (currentEditingTab === 'name') {
+      crop.name = detail;
+    } else {
+      crop[currentEditingTab as Section] = detail;
+    }
+    showAdvancedEditing = false;
+  }}
+/>

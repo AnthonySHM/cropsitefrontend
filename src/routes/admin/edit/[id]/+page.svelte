@@ -4,29 +4,33 @@
   import { api } from '$lib/api';
   import { goto } from '$app/navigation';
   import MediaPopup from '$lib/components/MediaPopup.svelte';
+  import AdvancedEditingPopup from '$lib/components/AdvancedEditingPopup.svelte';
+  import DOMPurify from 'dompurify';
 
   let crop: any = null;
+  let loading = true;
   let error = '';
   let sections = ['overview', 'planting', 'care', 'harvest', 'economics'];
   let showVideoPopup = false;
   let showImagePopup = false;
   let currentSection = '';
+  let showAdvancedEditing = false;
+  let currentEditingTab = '';
+  let editingContent = '';
+
+  function sanitizeHTML(dirty: string) {
+    return DOMPurify.sanitize(dirty);
+  }
 
   onMount(async () => {
-    const cropId = $page.params.id;
     try {
-      crop = await api.get(`/admin/crops/${cropId}`);
-      console.log('Fetched crop data:', crop);
-      // Initialize videos and images if they don't exist
-      sections.forEach(section => {
-        if (!crop.videos) crop.videos = {};
-        if (!crop.images) crop.images = {};
-        if (!crop.videos[section]) crop.videos[section] = [];
-        if (!crop.images[section]) crop.images[section] = [];
-      });
+      const cropId = $page.params.id;
+      crop = await api.get(`/crops/${cropId}`);
+      loading = false;
     } catch (err) {
-      error = 'Failed to load crop';
-      console.error('Error fetching crop:', err);
+      console.error('Failed to load crop:', err);
+      error = 'Failed to load crop data. Please try again.';
+      loading = false;
     }
   });
 
@@ -76,10 +80,21 @@
       crop.images[section].splice(index, 1);
     }
   }
+
+  function openAdvancedEditing(section: string) {
+    if (crop && (crop[section.toLowerCase()] !== undefined || section === 'name')) {
+      currentEditingTab = section;
+      editingContent = section === 'name' ? crop.name : crop[section.toLowerCase()];
+      showAdvancedEditing = true;
+    } else {
+      console.error(`Cannot edit ${section}: crop or section is undefined`);
+      // Optionally, show an error message to the user
+    }
+  }
 </script>
 
 <div class="container-fluid mt-5">
-  <h1>Edit Crop: {crop?.name}</h1>
+  <h1>Edit Crop: {@html crop?.name}</h1>
   {#if error}
     <div class="alert alert-danger">{error}</div>
   {/if}
@@ -91,7 +106,16 @@
           <h2>Text Content</h2>
           <div class="mb-3">
             <label for="name" class="form-label">Name</label>
-            <input type="text" class="form-control" id="name" bind:value={crop.name}>
+            <div class="input-group">
+              <div class="form-control" id="name">{@html crop.name}</div>
+              <button 
+                type="button" 
+                class="btn btn-secondary" 
+                on:click={() => openAdvancedEditing('name')}
+              >
+                Edit
+              </button>
+            </div>
           </div>
           <div class="mb-3">
             <label for="rating" class="form-label">Rating</label>
@@ -100,7 +124,18 @@
           {#each sections as section}
             <div class="mb-3">
               <label for={section} class="form-label">{section.charAt(0).toUpperCase() + section.slice(1)}</label>
-              <textarea class="form-control" id={section} rows="5" bind:value={crop[section]}></textarea>
+              <div class="input-group">
+                <div class="form-control" style="height: auto; min-height: 100px; overflow-y: auto;">
+                  <div>{@html sanitizeHTML(crop ? crop[section] : '')}</div>
+                </div>
+                <button 
+                  type="button" 
+                  class="btn btn-secondary" 
+                  on:click={() => openAdvancedEditing(section)}
+                >
+                  Edit
+                </button>
+              </div>
             </div>
           {/each}
         </div>
@@ -158,3 +193,20 @@
 
 <MediaPopup type="video" bind:show={showVideoPopup} on:add={addMedia} />
 <MediaPopup type="image" bind:show={showImagePopup} on:add={addMedia} />
+
+<AdvancedEditingPopup
+  bind:show={showAdvancedEditing}
+  tabName={currentEditingTab}
+  bind:content={editingContent}
+  on:close={() => showAdvancedEditing = false}
+  on:save={({ detail }) => {
+    if (crop && currentEditingTab) {
+      if (currentEditingTab === 'name') {
+        crop.name = detail.content;
+      } else {
+        crop[currentEditingTab.toLowerCase()] = sanitizeHTML(detail.content);
+      }
+    }
+    showAdvancedEditing = false;
+  }}
+/>
