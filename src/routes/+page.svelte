@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import HomeButton from '$lib/HomeButton.svelte';
   import { api } from '$lib/api';
+  import { auth } from '$lib/stores/auth';
 
   interface Crop {
     _id: string;
@@ -57,6 +58,12 @@
 <div class="container-fluid bg-light min-vh-100 py-5">
   <div class="container bg-white rounded shadow p-4">
     <h1 class="display-4 mb-4 text-primary fw-bold text-center">Welcome to <span class="text-success">{siteName}</span></h1>
+
+    {#if $auth.user && ($auth.user as any).isAdmin}
+      <div class="text-end mb-3">
+        <a href="/admin" class="btn btn-primary">Admin Panel</a>
+      </div>
+    {/if}
 
     <form on:submit|preventDefault={handleSearch} class="mb-4">
       <div class="row g-3">

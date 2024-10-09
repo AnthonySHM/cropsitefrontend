@@ -3,7 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 
 interface AuthStore {
   token: string | null;
-  user: any | null;
+  user: { isAdmin: boolean } | null;
 }
 
 function createAuthStore() {
@@ -16,7 +16,8 @@ function createAuthStore() {
     subscribe,
     setToken: (token: string) => {
       localStorage.setItem('token', token);
-      const user = jwtDecode(token);
+      const decodedToken = jwtDecode(token) as { isAdmin?: boolean };
+      const user = { isAdmin: decodedToken.isAdmin === true };
       set({ token, user });
     },
     clearToken: () => {
@@ -26,7 +27,8 @@ function createAuthStore() {
     init: () => {
       const token = localStorage.getItem('token');
       if (token) {
-        const user = jwtDecode(token);
+        const decodedToken = jwtDecode(token) as { isAdmin?: boolean };
+        const user = { isAdmin: decodedToken.isAdmin === true };
         set({ token, user });
       }
     },

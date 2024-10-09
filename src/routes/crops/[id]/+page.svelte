@@ -4,6 +4,7 @@
   import { browser } from '$app/environment';
   import { api } from '$lib/api';
   import Comment from '$lib/Comment.svelte';
+  import { auth } from '$lib/stores/auth';
 
   let crop: any = null;
   let error: string | null = null;

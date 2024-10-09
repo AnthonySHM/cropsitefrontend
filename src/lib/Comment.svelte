@@ -5,58 +5,60 @@
   export let cropId: string;
   export let tab: string;
 
-  let comments: Array<{ user: { username: string }, content: string }> = [];
+  let comments: any[] = [];
   let newComment = '';
   let error = '';
 
-  async function loadComments() {
+  $: loadComments(cropId, tab);
+
+  async function loadComments(cropId: string, tab: string) {
     try {
-      comments = await api.getComments(cropId, tab);
+      comments = await api.get(`/comments/${cropId}/${tab}`);
     } catch (err) {
-      console.error('Error loading comments:', err);
-      error = 'Failed to load comments. Please try again later.';
+      error = 'Failed to load comments';
     }
   }
 
   async function addComment() {
-    if (newComment.trim()) {
-      try {
-        await api.addComment(cropId, tab, newComment);
-        newComment = '';
-        await loadComments();
-        error = '';
-      } catch (err) {
-        console.error('Error adding comment:', err);
-        error = 'Failed to add comment. Please try again later.';
-      }
+    if (!$auth.user) {
+      error = 'You need to register or log in to comment.';
+      return;
     }
-  }
 
-  $: if (cropId && tab) {
-    loadComments();
+    try {
+      const response = await api.post('/comments', { cropId, tab, content: newComment });
+      comments = [...comments, response];
+      newComment = '';
+    } catch (err) {
+      error = 'Failed to add comment';
+    }
   }
 </script>
 
-<div class="comments-section mt-4">
-  <h4>Comments</h4>
+<div class="mt-4">
+  <h3>Comments</h3>
   {#if error}
     <div class="alert alert-danger">{error}</div>
   {/if}
-  {#if $auth.user}
-    <form on:submit|preventDefault={addComment} class="mb-3">
-      <div class="input-group">
-        <input type="text" class="form-control" placeholder="Add a comment..." bind:value={newComment}>
-        <button type="submit" class="btn btn-primary">Post</button>
-      </div>
-    </form>
-  {:else}
-    <p>Please <a href="/login">login</a> or <a href="/register">register</a> to add comments.</p>
-  {/if}
-  
-  <div class="comments-list">
+  <div class="mb-3">
+    <textarea
+      class="form-control"
+      rows="3"
+      placeholder={$auth.user ? "Add a comment..." : "Register or log in to comment"}
+      bind:value={newComment}
+      disabled={!$auth.user}
+    ></textarea>
+  </div>
+  <button class="btn btn-primary mb-3" on:click={addComment} disabled={!$auth.user}>
+    {$auth.user ? "Post Comment" : "Register to Comment"}
+  </button>
+  <div class="comment-list">
     {#each comments as comment}
-      <div class="comment mb-2">
-        <strong>{comment.user.username}</strong>: {comment.content}
+      <div class="card mb-2">
+        <div class="card-body">
+          <h5 class="card-title">{comment.user.username}</h5>
+          <p class="card-text">{comment.content}</p>
+        </div>
       </div>
     {/each}
   </div>

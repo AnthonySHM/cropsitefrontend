@@ -7,14 +7,28 @@
   let email = '';
   let password = '';
   let error = '';
+  let isAdmin = false;
+  let adminKey = '';
 
   async function handleSubmit() {
     try {
-      const { token } = await api.post('/auth/register', { username, email, password });
-      auth.setToken(token);
+      console.log('Submitting registration:', { username, email, password, isAdmin, adminKey });
+      const response = await api.post('/auth/register', { username, email, password, isAdmin, adminKey });
+      console.log('Registration successful, token:', response.token);
+      auth.setToken(response.token);
       goto('/');
-    } catch (err) {
-      error = 'Registration failed. Please try again.';
+    } catch (err: unknown) {
+      console.error('Registration error:', err);
+      if (err instanceof Error && 'response' in err) {
+        const apiError = err as { response?: { data?: { message?: string } } };
+        if (apiError.response?.data?.message) {
+          error = apiError.response.data.message;
+        } else {
+          error = 'Registration failed. Please try again.';
+        }
+      } else {
+        error = 'Registration failed. Please try again.';
+      }
     }
   }
 </script>
@@ -34,6 +48,16 @@
       <label for="password" class="form-label">Password</label>
       <input type="password" class="form-control" id="password" bind:value={password} required>
     </div>
+    <div class="mb-3 form-check">
+      <input type="checkbox" class="form-check-input" id="isAdmin" bind:checked={isAdmin}>
+      <label class="form-check-label" for="isAdmin">Register as Admin</label>
+    </div>
+    {#if isAdmin}
+      <div class="mb-3">
+        <label for="adminKey" class="form-label">Admin Key</label>
+        <input type="password" class="form-control" id="adminKey" bind:value={adminKey} required>
+      </div>
+    {/if}
     {#if error}
       <div class="alert alert-danger">{error}</div>
     {/if}
