@@ -3,6 +3,7 @@
   import { api } from '$lib/api';
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
 
   let activeTab = 'crops';
 
@@ -22,6 +23,13 @@
       );
     } else {
       filteredCrops = crops;
+    }
+  }
+
+  $: {
+    const tabParam = $page.url.searchParams.get('tab');
+    if (tabParam && ['crops', 'users'].includes(tabParam)) {
+      activeTab = tabParam;
     }
   }
 
@@ -94,7 +102,7 @@
     if (tab === 'comments') {
       goto('/admin/comments');
     } else if (tab === 'users' || tab === 'crops') {
-      goto('/admin');
+      goto('/admin?tab=' + tab);
     }
   }
 

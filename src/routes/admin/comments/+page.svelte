@@ -38,7 +38,7 @@
 
   <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
-      <button class="nav-link" on:click={() => goto('/admin')}>
+      <button class="nav-link" on:click={() => goto('/admin?tab=crops')}>
         Manage Crops
       </button>
     </li>
@@ -48,7 +48,7 @@
       </button>
     </li>
     <li class="nav-item">
-      <button class="nav-link" on:click={() => goto('/admin')}>
+      <button class="nav-link" on:click={() => goto('/admin?tab=users')}>
         Manage Users
       </button>
     </li>
