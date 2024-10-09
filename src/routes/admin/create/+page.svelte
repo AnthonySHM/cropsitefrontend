@@ -62,6 +62,22 @@
       crop.images[currentSection].push(data);
     }
   }
+
+  function deleteMedia(section: string, type: 'video', index: number) {
+    if (type === 'video') {
+      crop.videos[section].splice(index, 1);
+    }
+  }
+
+  function addCarouselImage(section: string) {
+    if (!crop.images) crop.images = {};
+    if (!crop.images[section]) crop.images[section] = [];
+    crop.images[section].push({ url: '', caption: '' });
+  }
+
+  function deleteCarouselImage(section: string, index: number) {
+    crop.images[section].splice(index, 1);
+  }
 </script>
 
 <div class="container-fluid mt-5">
@@ -96,29 +112,32 @@
             <h4>{section.charAt(0).toUpperCase() + section.slice(1)} Media</h4>
             <div class="mb-2">
               <h5>Videos</h5>
-              {#each crop.videos[section] as video}
+              {#each crop.videos[section] as video, index}
                 <div class="card mb-2">
                   <div class="card-body">
                     <h6>{video.title}</h6>
                     <p>{video.description}</p>
                     <a href={video.url} target="_blank" rel="noopener noreferrer">{video.url}</a>
+                    <button type="button" class="btn btn-danger btn-sm mt-2" on:click={() => deleteMedia(section, 'video', index)}>Delete</button>
                   </div>
                 </div>
               {/each}
             </div>
             <div class="mb-2">
-              <h5>Images</h5>
-              {#each crop.images[section] as image}
+              <h5>Carousel Images</h5>
+              {#each crop.images[section] as image, index}
                 <div class="card mb-2">
                   <div class="card-body">
-                    <img src={image.url} alt={image.caption} class="img-fluid mb-2">
-                    <p>{image.caption}</p>
+                    <input type="text" class="form-control mb-2" bind:value={image.url} placeholder="Image URL">
+                    <input type="text" class="form-control mb-2" bind:value={image.caption} placeholder="Image Caption">
+                    <img src={image.url} alt={image.caption} class="img-thumbnail mb-2" style="max-height: 100px;">
+                    <button type="button" class="btn btn-danger btn-sm" on:click={() => deleteCarouselImage(section, index)}>Delete</button>
                   </div>
                 </div>
               {/each}
+              <button type="button" class="btn btn-secondary btn-sm" on:click={() => addCarouselImage(section)}>Add Carousel Image</button>
             </div>
             <button type="button" class="btn btn-secondary me-2" on:click={() => { currentSection = section; showVideoPopup = true; }}>Add Video</button>
-            <button type="button" class="btn btn-secondary" on:click={() => { currentSection = section; showImagePopup = true; }}>Add Image</button>
           </div>
         {/each}
       </div>

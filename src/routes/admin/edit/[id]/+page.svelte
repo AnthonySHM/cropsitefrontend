@@ -16,6 +16,7 @@
     const cropId = $page.params.id;
     try {
       crop = await api.get(`/admin/crops/${cropId}`);
+      console.log('Fetched crop data:', crop);
       // Initialize videos and images if they don't exist
       sections.forEach(section => {
         if (!crop.videos) crop.videos = {};
@@ -25,17 +26,20 @@
       });
     } catch (err) {
       error = 'Failed to load crop';
+      console.error('Error fetching crop:', err);
     }
   });
 
   async function saveCrop() {
     try {
+      console.log('Saving crop data:', crop);
       const updatedCrop = await api.put(`/admin/crops/${crop._id}`, crop);
       crop = updatedCrop;
+      console.log('Updated crop data:', updatedCrop);
       goto('/admin');
     } catch (err) {
       error = 'Failed to update crop';
-      console.error(err);
+      console.error('Error updating crop:', err);
     }
   }
 
@@ -54,6 +58,16 @@
     } else {
       crop.images[section].splice(index, 1);
     }
+  }
+
+  function addCarouselImage(section: string) {
+    if (!crop.images) crop.images = {};
+    if (!crop.images[section]) crop.images[section] = [];
+    crop.images[section].push({ url: '', caption: '' });
+  }
+
+  function deleteCarouselImage(section: string, index: number) {
+    crop.images[section].splice(index, 1);
   }
 </script>
 
@@ -102,19 +116,19 @@
                 {/each}
               </div>
               <div class="mb-2">
-                <h5>Images</h5>
+                <h5>Carousel Images</h5>
                 {#each crop.images[section] as image, index}
                   <div class="card mb-2">
                     <div class="card-body">
-                      <img src={image.url} alt={image.caption} class="img-fluid mb-2">
-                      <p>{image.caption}</p>
-                      <button type="button" class="btn btn-danger btn-sm" on:click={() => deleteMedia(section, 'image', index)}>Delete</button>
+                      <input type="text" class="form-control mb-2" bind:value={image.url} placeholder="Image URL">
+                      <input type="text" class="form-control mb-2" bind:value={image.caption} placeholder="Image Caption">
+                      <button type="button" class="btn btn-danger btn-sm" on:click={() => deleteCarouselImage(section, index)}>Delete</button>
                     </div>
                   </div>
                 {/each}
+                <button type="button" class="btn btn-secondary btn-sm" on:click={() => addCarouselImage(section)}>Add Carousel Image</button>
               </div>
               <button type="button" class="btn btn-secondary me-2" on:click={() => { currentSection = section; showVideoPopup = true; }}>Add Video</button>
-              <button type="button" class="btn btn-secondary" on:click={() => { currentSection = section; showImagePopup = true; }}>Add Image</button>
             </div>
           {/each}
         </div>

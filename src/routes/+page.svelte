@@ -24,19 +24,18 @@
 
   async function fetchCrops(search: string = '', rating: string = '0') {
     try {
+      console.log('Fetching crops with params:', { search, rating });
       const crops = await api.get(`/crops?search=${search}&minRating=${rating}`);
+      console.log('Fetched crops:', crops);
       featuredCrops = crops;
     } catch (err) {
       console.error('Error fetching crops:', err);
+      featuredCrops = [];
     }
   }
 
   onMount(async () => {
-    try {
-      featuredCrops = await api.get('/crops');
-    } catch (error) {
-      console.error('Failed to fetch featured crops:', error);
-    }
+    await fetchCrops();
   });
 
   function handleSearch() {
@@ -107,7 +106,7 @@
               <div class="card-body d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <h3 class="card-title h5 mb-0">{crop.name}</h3>
-                  <span class="badge bg-primary">{crop.rating.toFixed(1)}</span>
+                  <span class="badge bg-primary">{(crop.rating ?? 0).toFixed(1)}</span>
                 </div>
                 <div class="mt-auto">
                   <a href="/crops/{crop._id}" class="btn btn-outline-primary btn-sm w-100">Learn More</a>
