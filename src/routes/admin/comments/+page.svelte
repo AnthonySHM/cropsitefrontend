@@ -34,7 +34,7 @@
 </script>
 
 <div class="container-fluid mt-5">
-  <h1>Manage Comments</h1>
+  <h1>Admin Dashboard</h1>
 
   <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
@@ -45,6 +45,11 @@
     <li class="nav-item">
       <button class="nav-link active">
         Manage Comments
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" on:click={() => goto('/admin')}>
+        Manage Users
       </button>
     </li>
   </ul>

@@ -93,6 +93,8 @@
     activeTab = tab;
     if (tab === 'comments') {
       goto('/admin/comments');
+    } else if (tab === 'users' || tab === 'crops') {
+      goto('/admin');
     }
   }
 
