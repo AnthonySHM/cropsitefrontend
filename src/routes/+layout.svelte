@@ -32,7 +32,6 @@
       </div>
       <div class="navbar-nav ms-auto">
         {#if $auth.user}
-          <span class="nav-item nav-link">Welcome, {($auth.user as any).username}</span>
           <button class="btn btn-outline-primary" on:click={handleLogout}>Logout</button>
         {:else}
           <a class="nav-item nav-link" href="/login">Login</a>
