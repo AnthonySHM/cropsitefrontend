@@ -89,6 +89,7 @@
     if (crop.images && crop.images[section]) {
       crop.images[section].splice(index, 1);
     }
+    crop = { ...crop };
   }
 
   function openAdvancedEditing(section: string) {

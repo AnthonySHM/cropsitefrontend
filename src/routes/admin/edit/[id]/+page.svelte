@@ -91,6 +91,7 @@
     } else {
       crop.images[section].splice(index, 1);
     }
+    crop = { ...crop }; // Force Svelte to update the view
   }
 
   function addCarouselImage(section: string) {
@@ -246,4 +247,3 @@
     showAdvancedEditing = false;
   }}
 />
-
