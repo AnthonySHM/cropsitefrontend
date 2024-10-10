@@ -7,7 +7,33 @@
   import AdvancedEditingPopup from '$lib/components/AdvancedEditingPopup.svelte';
   import DOMPurify from 'dompurify';
 
-  let crop: any = null;
+  interface Crop {
+    _id: string;
+    name: string;
+    image: string;
+    rating: number;
+    overview: string;
+    planting: string;
+    care: string;
+    harvest: string;
+    economics: string;
+    videos: Record<string, { url: string; title: string }[]>;
+    images: Record<string, { url: string; alt: string }[]>;
+  }
+
+  let crop: Crop = {
+    _id: '',
+    name: '',
+    image: '',
+    rating: 0,
+    overview: '',
+    planting: '',
+    care: '',
+    harvest: '',
+    economics: '',
+    videos: { overview: [], planting: [], care: [], harvest: [], economics: [] },
+    images: { overview: [], planting: [], care: [], harvest: [], economics: [] }
+  };
   let loading = true;
   let error = '';
   let sections = ['overview', 'planting', 'care', 'harvest', 'economics'];
@@ -42,7 +68,7 @@
       console.log('Updated crop data:', updatedCrop);
       goto('/admin');
     } catch (err) {
-      error = 'Failed to update crop';
+      error = 'Failed to update crop: ' + (err instanceof Error ? err.message : String(err));
       console.error('Error updating crop:', err);
     }
   }
@@ -50,11 +76,9 @@
   function addMedia(event: CustomEvent) {
     const { type, data } = event.detail;
     if (type === 'video') {
-      if (!crop.videos) crop.videos = {};
       if (!crop.videos[currentSection]) crop.videos[currentSection] = [];
       crop.videos[currentSection].push(data);
     } else if (type === 'image') {
-      if (!crop.images) crop.images = {};
       if (!crop.images[currentSection]) crop.images[currentSection] = [];
       crop.images[currentSection].push(data);
     }
@@ -70,26 +94,37 @@
   }
 
   function addCarouselImage(section: string) {
-    if (!crop.images) crop.images = {};
     if (!crop.images[section]) crop.images[section] = [];
-    crop.images[section].push({ url: '', caption: '' });
+    crop.images[section].push({ url: '', alt: '' });
   }
 
   function deleteCarouselImage(section: string, index: number) {
-    if (crop.images && crop.images[section]) {
+    if (crop.images[section]) {
       crop.images[section].splice(index, 1);
     }
   }
 
   function openAdvancedEditing(section: string) {
-    if (crop && (crop[section.toLowerCase()] !== undefined || section === 'name')) {
+    if (crop && (section in crop || section === 'name')) {
       currentEditingTab = section;
-      editingContent = section === 'name' ? crop.name : crop[section.toLowerCase()];
+      editingContent = section === 'name' ? crop.name : (crop[section as keyof typeof crop] as string) || '';
       showAdvancedEditing = true;
     } else {
       console.error(`Cannot edit ${section}: crop or section is undefined`);
       // Optionally, show an error message to the user
     }
+  }
+
+  function saveAdvancedEditing(editedContent: string) {
+    if (currentEditingTab) {
+      if (currentEditingTab === 'name') {
+        crop.name = editedContent;
+      } else {
+        (crop[currentEditingTab as keyof typeof crop] as string) = editedContent;
+      }
+      crop = { ...crop }; // Force Svelte to update the view
+    }
+    showAdvancedEditing = false;
   }
 </script>
 
@@ -126,7 +161,7 @@
               <label for={section} class="form-label">{section.charAt(0).toUpperCase() + section.slice(1)}</label>
               <div class="input-group">
                 <div class="form-control" style="height: auto; min-height: 100px; overflow-y: auto;">
-                  <div>{@html sanitizeHTML(crop ? crop[section] : '')}</div>
+                  <div>{@html sanitizeHTML(crop[section as keyof typeof crop] as string)}</div>
                 </div>
                 <button 
                   type="button" 
@@ -150,12 +185,11 @@
               <h4>{section.charAt(0).toUpperCase() + section.slice(1)} Media</h4>
               <div class="mb-3">
                 <h5>Videos</h5>
-                {#if crop.videos && crop.videos[section]}
+                {#if crop.videos[section]}
                   {#each crop.videos[section] as video, index}
                     <div class="card mb-2">
                       <div class="card-body">
                         <h6>{video.title}</h6>
-                        <p>{video.description}</p>
                         <a href={video.url} target="_blank" rel="noopener noreferrer">{video.url}</a>
                         <button type="button" class="btn btn-danger btn-sm mt-2" on:click={() => deleteMedia(section, 'video', index)}>Delete</button>
                       </div>
@@ -166,13 +200,13 @@
               </div>
               <div class="mb-3">
                 <h5>Carousel Images</h5>
-                {#if crop.images && crop.images[section]}
+                {#if crop.images[section]}
                   {#each crop.images[section] as image, index}
                     <div class="card mb-2">
                       <div class="card-body">
                         <input type="text" class="form-control mb-2" bind:value={image.url} placeholder="Image URL">
-                        <input type="text" class="form-control mb-2" bind:value={image.caption} placeholder="Image Caption">
-                        <img src={image.url} alt={image.caption} class="img-thumbnail mb-2" style="max-height: 100px;">
+                        <input type="text" class="form-control mb-2" bind:value={image.alt} placeholder="Image Alt Text">
+                        <img src={image.url} alt={image.alt} class="img-thumbnail mb-2" style="max-height: 100px;">
                         <button type="button" class="btn btn-danger btn-sm" on:click={() => deleteCarouselImage(section, index)}>Delete</button>
                       </div>
                     </div>
@@ -201,13 +235,15 @@
   fullscreen={true}
   on:close={() => showAdvancedEditing = false}
   on:save={({ detail }) => {
-    if (crop && currentEditingTab) {
-      if (currentEditingTab === 'name') {
-        crop.name = detail;
-      } else {
-        crop[currentEditingTab.toLowerCase()] = detail;
-      }
-      showAdvancedEditing = false;
+    if (currentEditingTab === 'name') {
+      crop.name = detail.content;
+    } else if (currentEditingTab === 'description' || currentEditingTab === 'history') {
+      (crop as any)[currentEditingTab] = sanitizeHTML(detail.content);
+    } else {
+      // Handle other properties if needed
+      (crop as any)[currentEditingTab] = detail.content;
     }
+    showAdvancedEditing = false;
   }}
 />
+

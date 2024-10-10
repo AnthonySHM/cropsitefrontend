@@ -41,11 +41,24 @@
 
   async function createCrop() {
     try {
-      await api.post('/admin/crops', crop);
+      console.log('Creating crop data:', crop);
+      const cropData = {
+        name: crop.name,
+        image: crop.image,
+        overview: crop.overview,
+        planting: crop.planting,
+        care: crop.care,
+        harvest: crop.harvest,
+        economics: crop.economics,
+        videos: crop.videos,
+        images: crop.images
+      };
+      const newCrop = await api.post('/admin/crops', cropData);
+      console.log('Created crop data:', newCrop);
       goto('/admin');
     } catch (err) {
-      error = 'Failed to create crop';
-      console.error(err);
+      error = 'Failed to create crop: ' + (err instanceof Error ? err.message : String(err));
+      console.error('Error creating crop:', err);
     }
   }
 
@@ -65,15 +78,44 @@
       crop.images[section] = crop.images[section].filter((_, i) => i !== index);
     }
   }
+  function addCarouselImage(section: Section) {
+    if (!crop.images[section]) {
+      crop.images[section] = [];
+    }
+    crop.images[section].push({ url: '', caption: '' });
+  }
+
+  function deleteCarouselImage(section: Section, index: number) {
+    if (crop.images && crop.images[section]) {
+      crop.images[section].splice(index, 1);
+    }
+  }
 
   function openAdvancedEditing(section: string) {
-    currentEditingTab = section;
-    editingContent = section === 'name' ? crop.name : crop[section as Section];
-    showAdvancedEditing = true;
+    if (crop && (section in crop || section === 'name')) {
+      currentEditingTab = section;
+      editingContent = section === 'name' ? crop.name : (crop[section as keyof typeof crop] as string) || '';
+      showAdvancedEditing = true;
+    } else {
+      console.error(`Cannot edit ${section}: crop or section is undefined`);
+      // Optionally, show an error message to the user
+    }
   }
 
   function sanitizeHTML(dirty: string) {
     return DOMPurify.sanitize(dirty);
+  }
+
+  function saveAdvancedEditing(editedContent: string) {
+    if (currentEditingTab) {
+      if (currentEditingTab === 'name') {
+        crop.name = editedContent;
+      } else if (currentEditingTab in crop) {
+        (crop[currentEditingTab as keyof typeof crop] as string) = editedContent;
+      }
+      crop = { ...crop }; // Force Svelte to update the view
+    }
+    showAdvancedEditing = false;
   }
 </script>
 
@@ -174,10 +216,19 @@
   on:close={() => showAdvancedEditing = false}
   on:save={({ detail }) => {
     if (currentEditingTab === 'name') {
-      crop.name = detail;
-    } else {
-      crop[currentEditingTab as Section] = detail;
+      crop.name = detail.content;
+    } else if (currentEditingTab in crop) {
+      if (currentEditingTab === 'videos' || currentEditingTab === 'images') {
+        // Handle media sections separately
+        const parsedContent = JSON.parse(sanitizeHTML(detail.content));
+        crop[currentEditingTab as 'videos' | 'images'] = parsedContent as Record<Section, MediaItem[]>;
+      } else {
+        // For other properties, ensure we're not assigning a string to a non-string type
+        const value = sanitizeHTML(detail.content);
+        (crop as any)[currentEditingTab] = value;
+      }
     }
     showAdvancedEditing = false;
+    crop = { ...crop }; // Force Svelte to update the view
   }}
 />

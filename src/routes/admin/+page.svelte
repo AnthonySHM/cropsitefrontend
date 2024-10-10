@@ -10,7 +10,7 @@
   let crops: any[] = [];
   let editingCrop: any = null;
   let error = '';
-  let newCrop = { name: '', overview: '', planting: '', care: '', harvest: '', economics: '' };
+  let newCrop = { name: '', image: '', overview: '', planting: '', care: '', harvest: '', economics: '', videos: {}, images: {} };
   let searchQuery = '';
   let filteredCrops: any[] = [];
 
@@ -76,23 +76,44 @@
 
   async function createCrop() {
     try {
-      await api.post('/admin/crops', newCrop);
-      newCrop = { name: '', overview: '', planting: '', care: '', harvest: '', economics: '' };
+      console.log('Creating crop data:', newCrop);
+      const cropData = {
+        name: newCrop.name,
+        image: newCrop.image || '',
+        overview: newCrop.overview,
+        planting: newCrop.planting,
+        care: newCrop.care,
+        harvest: newCrop.harvest,
+        economics: newCrop.economics,
+        videos: newCrop.videos || {},
+        images: newCrop.images || {}
+      };
+      const createdCrop = await api.post('/admin/crops', cropData);
+      console.log('Created crop data:', createdCrop);
       await loadCrops();
+      goto('/admin');
     } catch (err) {
-      error = 'Failed to create crop';
+      error = 'Failed to create crop: ' + (err instanceof Error ? err.message : String(err));
+      console.error('Error creating crop:', err);
     }
   }
 
-  async function saveCrop(crop: any) {
+  async function saveCrop() {
     try {
-      console.log('Saving crop data:', JSON.stringify(crop, null, 2));
-      const updatedCrop = await api.put(`/admin/crops/${crop._id}`, crop);
-      console.log('Updated crop data:', JSON.stringify(updatedCrop, null, 2));
-      alert('Crop updated successfully');
-      goto('/admin');
-    } catch (err) {
-      error = 'Failed to update crop';
+      console.log('Saving crop data:', editingCrop);
+      const response = await api.put(`/admin/crops/${editingCrop._id}`, editingCrop);
+      if (response.ok) {
+        const updatedCrop = await response.json();
+        editingCrop = updatedCrop;
+        console.log('Updated crop data:', updatedCrop);
+        await loadCrops();
+        goto('/admin');
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Failed to update crop: ${response.status} ${response.statusText}\n${errorText}`);
+      }
+    } catch (err: unknown) {
+      error = 'Failed to update crop: ' + (err instanceof Error ? err.message : String(err));
       console.error('Error updating crop:', err);
     }
   }
