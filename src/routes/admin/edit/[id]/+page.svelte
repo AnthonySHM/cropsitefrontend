@@ -51,7 +51,7 @@
   onMount(async () => {
     try {
       const cropId = $page.params.id;
-      crop = await api.get(`/crops/${cropId}`);
+      crop = await api.get(`/api/crops/${cropId}`);
       loading = false;
     } catch (err) {
       console.error('Failed to load crop:', err);
@@ -63,7 +63,7 @@
   async function saveCrop() {
     try {
       console.log('Saving crop data:', crop);
-      const updatedCrop = await api.put(`api/admin/crops/${crop._id}`, crop);
+      const updatedCrop = await api.put(`/api/admin/crops/${crop._id}`, crop);
       crop = updatedCrop;
       console.log('Updated crop data:', updatedCrop);
       goto('/admin');

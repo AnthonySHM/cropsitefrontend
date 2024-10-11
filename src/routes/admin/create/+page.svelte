@@ -53,7 +53,7 @@
         videos: crop.videos,
         images: crop.images
       };
-      const newCrop = await api.post('api/admin/crops', cropData);
+      const newCrop = await api.post('/api/admin/crops', cropData);
       console.log('Created crop data:', newCrop);
       goto('/admin');
     } catch (err) {

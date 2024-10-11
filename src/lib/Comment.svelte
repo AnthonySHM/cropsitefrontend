@@ -13,7 +13,7 @@
 
   async function loadComments(cropId: string, tab: string) {
     try {
-      comments = await api.get(`/comments/${cropId}/${tab}`);
+      comments = await api.get(`/api/comments/${cropId}/${tab}`);
     } catch (err) {
       error = 'Failed to load comments';
     }
@@ -26,7 +26,7 @@
     }
 
     try {
-      const response = await api.post('/comments', { cropId, tab, content: newComment });
+      const response = await api.post('/api/comments', { cropId, tab, content: newComment });
       comments = [...comments, response];
       newComment = '';
     } catch (err) {

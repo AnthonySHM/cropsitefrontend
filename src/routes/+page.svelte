@@ -22,7 +22,7 @@
   async function fetchCrops(search: string = '', rating: string = '0') {
     try {
       console.log('Fetching crops with params:', { search, rating });
-      const crops = await api.get(`api/crops?search=${encodeURIComponent(search)}&minRating=${rating}`);
+      const crops = await api.get(`/api/crops?search=${encodeURIComponent(search)}&minRating=${rating}`);
       console.log('Fetched crops:', crops);
       console.log('Crops length:', crops.length);
       featuredCrops = [...crops]; // Create a new array to force re-render

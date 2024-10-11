@@ -44,7 +44,7 @@
 
   async function loadCrops() {
     try {
-      crops = await api.get('/admin/crops');
+      crops = await api.get('/api/admin/crops');
     } catch (err) {
       error = 'Failed to load crops';
     }
@@ -52,7 +52,7 @@
 
   async function loadUsers() {
     try {
-      users = await api.get('/admin/users');
+      users = await api.get('/api/admin/users');
     } catch (err) {
       error = 'Failed to load users';
     }
@@ -66,7 +66,7 @@
   async function deleteCrop(cropId: string) {
     if (confirm('Are you sure you want to delete this crop?')) {
       try {
-        await api.delete(`/admin/crops/${cropId}`);
+        await api.delete(`/api/admin/crops/${cropId}`);
         await loadCrops();
       } catch (err) {
         error = 'Failed to delete crop';
@@ -88,7 +88,7 @@
         videos: newCrop.videos || {},
         images: newCrop.images || {}
       };
-      const createdCrop = await api.post('/admin/crops', cropData);
+      const createdCrop = await api.post('/api/admin/crops', cropData);
       console.log('Created crop data:', createdCrop);
       await loadCrops();
       goto('/admin');
@@ -101,7 +101,7 @@
   async function saveCrop() {
     try {
       console.log('Saving crop data:', editingCrop);
-      const response = await api.put(`/admin/crops/${editingCrop._id}`, editingCrop);
+      const response = await api.put(`/api/admin/crops/${editingCrop._id}`, editingCrop);
       if (response.ok) {
         const updatedCrop = await response.json();
         editingCrop = updatedCrop;
@@ -130,7 +130,7 @@
   async function deleteUser(userId: string) {
     if (confirm('Are you sure you want to delete this user?')) {
       try {
-        await api.delete(`/admin/users/${userId}`);
+        await api.delete(`/api/admin/users/${userId}`);
         await loadUsers();
       } catch (err) {
         error = 'Failed to delete user';
