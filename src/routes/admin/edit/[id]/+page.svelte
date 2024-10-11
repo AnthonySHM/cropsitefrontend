@@ -63,7 +63,7 @@
   async function saveCrop() {
     try {
       console.log('Saving crop data:', crop);
-      const updatedCrop = await api.put(`/admin/crops/${crop._id}`, crop);
+      const updatedCrop = await api.put(`api/admin/crops/${crop._id}`, crop);
       crop = updatedCrop;
       console.log('Updated crop data:', updatedCrop);
       goto('/admin');

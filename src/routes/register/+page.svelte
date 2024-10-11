@@ -13,7 +13,7 @@
   async function handleSubmit() {
     try {
       console.log('Submitting registration:', { username, email, password, isAdmin, adminKey });
-      const response = await api.post('/auth/register', { username, email, password, isAdmin, adminKey });
+      const response = await api.post('api/auth/register', { username, email, password, isAdmin, adminKey });
       console.log('Registration successful, token:', response.token);
       auth.setToken(response.token);
       goto('/');

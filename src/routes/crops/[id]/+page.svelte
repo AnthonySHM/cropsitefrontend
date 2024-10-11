@@ -16,7 +16,7 @@
   onMount(async () => {
     const cropId = $page.params.id;
     try {
-      crop = await api.get(`/crops/${cropId}`);
+      crop = await api.get(`api/crops/${cropId}`);
       console.log('Fetched crop data:', JSON.stringify(crop, null, 2));
       if (browser) {
         bootstrap = await import('bootstrap');

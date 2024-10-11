@@ -17,7 +17,7 @@
 
   async function loadComments() {
     try {
-      comments = await api.get('/admin/comments');
+      comments = await api.get('api/admin/comments');
     } catch (err) {
       error = 'Failed to load comments';
     }
@@ -25,7 +25,7 @@
 
   async function deleteComment(commentId: string) {
     try {
-      await api.delete(`/admin/comments/${commentId}`);
+      await api.delete(`api/admin/comments/${commentId}`);
       await loadComments();
     } catch (err) {
       error = 'Failed to delete comment';

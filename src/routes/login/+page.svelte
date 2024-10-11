@@ -9,7 +9,7 @@
 
   async function handleSubmit() {
     try {
-      const { token } = await api.post('/auth/login', { email, password });
+      const { token } = await api.post('/api/auth/login', { email, password });
       auth.setToken(token);
       goto('/');
     } catch (err) {
