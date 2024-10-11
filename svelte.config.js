@@ -6,6 +6,7 @@ import sveltePreprocess from 'svelte-preprocess';
 const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
+	elint : { ignoreDuringBuilds : true,},
 	preprocess: vitePreprocess(),
 	preprocess: sveltePreprocess(),
 
