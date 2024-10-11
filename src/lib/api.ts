@@ -1,6 +1,6 @@
 import { auth } from './stores/auth';
 
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'https://cropsitebackend-1.onrender.com';
 
 async function request(endpoint: string, options: RequestInit = {}) {
   let token: string | null = null;
